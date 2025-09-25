@@ -17,14 +17,14 @@ export default function App() {
         {tab === 'inicio' && (
           <section className="grid md:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
-              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-readable">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-readable">
                 <span className="bg-retro-gradient bg-clip-text text-transparent">
                   QueLoKhé
                 </span>{' '}
                 — Pokémon competitivo Córdoba
               </h1>
 
-              <p className="text-neutral-200 text-readable">
+              <p className="text-neutral-200 text-readable text-base sm:text-lg">
                 Comunidad local (y online) para jugar, aprender y competir en Pokémon.
                 Quedadas, ligas, torneos y buen ambiente en Córdoba, España.
               </p>
@@ -59,12 +59,13 @@ export default function App() {
               </div>
             </div>
 
+            {/* Logo hero: ahora desde /public/logo.png para evitar problemas */}
             <div className="relative">
               <div className="absolute -inset-6 bg-retro-gradient opacity-40 blur-2xl rounded-full" />
               <img
-                src="/src/assets/LogoQueLoKhé.png"
+                src="/logo.png"
                 alt="Logo QueLoKhé"
-                className="relative w-full max-w-md mx-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+                className="relative w-full max-w-[260px] sm:max-w-sm mx-auto aspect-square object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
               />
             </div>
           </section>
@@ -76,7 +77,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-white/10 mt-16">
-        <div className="max-w-5xl mx-auto px-4 py-6 text-sm text-neutral-400">
+        <div className="max-w-5xl mx-auto px-4 py-6 text-sm text-neutral-400 text-center sm:text-left">
           © {new Date().getFullYear()} QueLoKhé · Córdoba, España
         </div>
       </footer>
