@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tarjetas translúcidas */
+.glass {
+  @apply bg-white/5 backdrop-blur-md border border-white/10;
+}
+
+.glass-strong {
+  @apply bg-white/10 backdrop-blur-md border border-white/10;
+}
+
+.text-readable {
+  text-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.site-bg {
+  background-color: #0a0a0a;
+  background-image:
+    linear-gradient(0deg, rgba(8, 8, 8, 0.78), rgba(8, 8, 8, 0.78)),
+    radial-gradient(120% 120% at 50% 20%, rgba(0, 0, 0, 0.35), rgba(0,0,0,0) 60%),
+    url('./assets/bg.jpg');
+  background-size: cover, cover, cover;
+  background-position: center, center, center;
+  background-attachment: fixed, fixed, fixed;
+  color: #e5e5e5;
+  min-height: 100vh;
+}
