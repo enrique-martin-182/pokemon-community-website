@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTheme } from '../hooks/useTheme'
 
 type Tab = 'inicio' | 'torneos' | 'juego'
 
@@ -9,6 +10,7 @@ type Props = {
 
 export default function Header({ onNavigate, active }: Props) {
   const [open, setOpen] = useState(false)
+  const { theme, toggle } = useTheme()
 
   // Cierra el menú si se ensancha la ventana a md o más
   useEffect(() => {
@@ -20,12 +22,11 @@ export default function Header({ onNavigate, active }: Props) {
   }, [])
 
   const btn = (key: Tab) =>
-    `block w-full md:w-auto text-left md:text-center px-4 py-2 rounded-xl transition hover:bg-white/10 ${
-      active === key ? 'glass' : ''
-    }`
+    `block w-full md:w-auto text-left md:text-center px-4 py-2 rounded-xl transition
+     hover:bg-black/5 dark:hover:bg-white/10 ${active === key ? 'glass' : ''}`
 
   return (
-    <header className="sticky top-0 z-40 bg-neutral-950/70 backdrop-blur supports-[backdrop-filter]:bg-neutral-950/60 border-b border-white/10">
+    <header className="sticky top-0 z-40 bg-white/70 dark:bg-neutral-950/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-neutral-950/60 border-b border-black/10 dark:border-white/10">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Branding */}
         <button
@@ -33,36 +34,61 @@ export default function Header({ onNavigate, active }: Props) {
           className="flex items-center gap-3 cursor-pointer"
           aria-label="Ir al inicio"
         >
-          {/* El logo viene de /public/logo.png */}
           <img
             src="/logo.png"
             alt="QueLoKhé"
             className="w-8 h-8 rounded-full object-cover"
           />
-          <span className="font-bold tracking-tight">QueLoKhé</span>
+          <span className="font-bold tracking-tight text-neutral-900 dark:text-neutral-100">QueLoKhé</span>
         </button>
 
-        {/* Botón menú móvil */}
-        <button
-          className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/10"
-          aria-expanded={open}
-          aria-controls="primary-nav"
-          onClick={() => setOpen(!open)}
-          aria-label="Abrir menú"
-        >
-          {/* Ícono simple */}
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/>
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Botón tema */}
+          <button
+            onClick={toggle}
+            className="hidden sm:inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
+            aria-label={theme === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'}
+            title={theme === 'dark' ? 'Modo diurno' : 'Modo nocturno'}
+          >
+            {theme === 'dark' ? (
+              /* Ícono sol */
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M12 3v2m0 14v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h2m14 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+              </svg>
+            ) : (
+              /* Ícono luna */
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/>
+              </svg>
+            )}
+          </button>
+
+          {/* Botón menú móvil */}
+          <button
+            className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10"
+            aria-expanded={open}
+            aria-controls="primary-nav"
+            onClick={() => setOpen(!open)}
+            aria-label="Abrir menú"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/>
+            </svg>
+          </button>
+        </div>
 
         {/* Navegación */}
         <nav
           id="primary-nav"
-          className={`absolute md:static top-16 left-0 right-0 md:top-auto bg-neutral-950/95 md:bg-transparent border-b border-white/10 md:border-0 ${
-            open ? 'block' : 'hidden'
-          } md:block`}
+          className={`absolute md:static top-16 left-0 right-0 md:top-auto
+            bg-white/95 dark:bg-neutral-950/95 border-b border-black/10 dark:border-white/10 md:border-0
+            ${open ? 'block' : 'hidden'} md:block`}
         >
           <ul className="max-w-5xl md:max-w-none mx-auto md:mx-0 px-4 py-2 md:p-0 grid md:flex gap-2">
             <li>
@@ -78,6 +104,16 @@ export default function Header({ onNavigate, active }: Props) {
             <li>
               <button onClick={() => { onNavigate('juego'); setOpen(false) }} className={btn('juego')}>
                 Minijuego
+              </button>
+            </li>
+
+            {/* Botón tema (visible también dentro del menú en móvil) */}
+            <li className="md:hidden">
+              <button
+                onClick={() => { toggle(); setOpen(false) }}
+                className="px-4 py-2 rounded-xl transition hover:bg-black/5 dark:hover:bg-white/10 w-full text-left"
+              >
+                {theme === 'dark' ? 'Modo diurno' : 'Modo nocturno'}
               </button>
             </li>
           </ul>

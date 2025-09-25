@@ -10,7 +10,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('inicio')
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen text-neutral-900 dark:text-neutral-100">
       <Header onNavigate={setTab} active={tab} />
 
       <main className="max-w-5xl mx-auto px-4 py-8">
@@ -24,7 +24,7 @@ export default function App() {
                 — Pokémon competitivo Córdoba
               </h1>
 
-              <p className="text-neutral-200 text-readable text-base sm:text-lg">
+              <p className="text-readable text-base sm:text-lg text-neutral-700 dark:text-neutral-200">
                 Comunidad local (y online) para jugar, aprender y competir en Pokémon.
                 Quedadas, ligas, torneos y buen ambiente en Córdoba, España.
               </p>
@@ -36,7 +36,7 @@ export default function App() {
                   rel={DISCORD_URL ? 'noopener noreferrer' : undefined}
                   aria-disabled={!DISCORD_URL}
                   className={`inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-semibold shadow-glow transition
-                    ${DISCORD_URL ? 'bg-white text-neutral-900 hover:opacity-90' : 'glass text-neutral-300 cursor-not-allowed'}
+                    ${DISCORD_URL ? 'bg-white text-neutral-900 hover:opacity-90' : 'glass text-neutral-700 dark:text-neutral-300 cursor-not-allowed'}
                   `}
                   title={DISCORD_URL ? 'Abrir Discord' : 'Añade el enlace de Discord en src/config.ts'}
                 >
@@ -45,21 +45,20 @@ export default function App() {
 
                 <button
                   onClick={() => setTab('torneos')}
-                  className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-semibold glass hover:bg-white/10 transition"
+                  className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-semibold glass hover:bg-black/10 dark:hover:bg-white/10 transition"
                 >
                   🏆 Ver torneos activos
                 </button>
 
                 <button
                   onClick={() => setTab('juego')}
-                  className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-semibold glass hover:bg-white/10 transition"
+                  className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-semibold glass hover:bg-black/10 dark:hover:bg-white/10 transition"
                 >
-                  🎮 Jugar ahora
+                  🎮 "¿Qué Pokémon tiene mayor stat base?"
                 </button>
               </div>
             </div>
 
-            {/* Logo hero: ahora desde /public/logo.png para evitar problemas */}
             <div className="relative">
               <div className="absolute -inset-6 bg-retro-gradient opacity-40 blur-2xl rounded-full" />
               <img
@@ -76,8 +75,8 @@ export default function App() {
         {tab === 'juego' && <Game />}
       </main>
 
-      <footer className="border-t border-white/10 mt-16">
-        <div className="max-w-5xl mx-auto px-4 py-6 text-sm text-neutral-400 text-center sm:text-left">
+      <footer className="border-t border-black/10 dark:border-white/10 mt-16">
+        <div className="max-w-5xl mx-auto px-4 py-6 text-sm text-neutral-600 dark:text-neutral-400 text-center sm:text-left">
           © {new Date().getFullYear()} QueLoKhé · Córdoba, España
         </div>
       </footer>
