@@ -1,11 +1,10 @@
-
 import { activeTournaments } from '../data/tournaments'
 
 function formatDate(dateISO: string) {
   const d = new Date(dateISO)
   return d.toLocaleString('es-ES', {
     dateStyle: 'long',
-    timeStyle: 'short'
+    timeStyle: 'short',
   })
 }
 
@@ -17,14 +16,18 @@ export default function Tournaments() {
         <p className="text-neutral-400">De momento no hay torneos activos. Vuelve pronto.</p>
       ) : (
         <ul className="grid sm:grid-cols-2 gap-5">
-          {activeTournaments.map(t => (
+          {activeTournaments.map((t) => (
             <li key={t.id} className="glass rounded-2xl p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-semibold">{t.name}</h3>
-                  <p className="text-sm text-neutral-400">{t.format} · {t.location}</p>
+                  <p className="text-sm text-neutral-400">
+                    {t.format} · {t.location}
+                  </p>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full bg-white/10">{formatDate(t.dateISO)}</span>
+                <span className="text-xs px-2 py-1 rounded-full bg-white/10">
+                  {formatDate(t.dateISO)}
+                </span>
               </div>
 
               {t.notes && <p className="mt-3 text-neutral-300">{t.notes}</p>}

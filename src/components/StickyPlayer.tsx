@@ -4,7 +4,9 @@ import { useAudio } from '../audio/AudioProvider'
 function formatTime(sec: number) {
   if (!isFinite(sec)) return '0:00'
   const m = Math.floor(sec / 60)
-  const s = Math.floor(sec % 60).toString().padStart(2, '0')
+  const s = Math.floor(sec % 60)
+    .toString()
+    .padStart(2, '0')
   return `${m}:${s}`
 }
 
@@ -13,9 +15,7 @@ export default function StickyPlayer() {
   const t = a.track
 
   // iOS no permite controlar el volumen por software
-  const isIOS =
-    typeof navigator !== 'undefined' &&
-    /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
 
   if (!a.visible || !t) return null
 
@@ -91,9 +91,7 @@ export default function StickyPlayer() {
 
               {/* Volumen SIEMPRE visible (se adapta de tamaño) */}
               <div className="flex items-center gap-2 ml-1">
-                <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                  🔊
-                </span>
+                <span className="text-sm text-neutral-600 dark:text-neutral-400">🔊</span>
                 <input
                   type="range"
                   min={0}
@@ -121,8 +119,8 @@ export default function StickyPlayer() {
           {/* Nota para iOS */}
           {isIOS && (
             <div className="mt-1 text-[10px] text-neutral-600 dark:text-neutral-400">
-              En iOS no se puede ajustar el volumen por software; usa los
-              botones físicos del dispositivo.
+              En iOS no se puede ajustar el volumen por software; usa los botones físicos del
+              dispositivo.
             </div>
           )}
         </div>

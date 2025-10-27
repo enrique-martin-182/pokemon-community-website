@@ -37,10 +37,18 @@ export default function MusicPlayer() {
                 className={`w-full glass p-3 rounded-2xl text-left hover:bg-black/5 dark:hover:bg-white/10 transition ${active ? 'ring-1 ring-white/20' : ''}`}
               >
                 <div className="flex items-center gap-3">
-                  <img src={t.cover || '/logo.png'} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                  <img
+                    src={t.cover || '/logo.png'}
+                    alt=""
+                    className="w-12 h-12 rounded-lg object-cover"
+                  />
                   <div className="min-w-0">
                     <div className="font-medium truncate">{t.title}</div>
-                    {t.artist && <div className="text-sm text-neutral-600 dark:text-neutral-400 truncate">{t.artist}</div>}
+                    {t.artist && (
+                      <div className="text-sm text-neutral-600 dark:text-neutral-400 truncate">
+                        {t.artist}
+                      </div>
+                    )}
                   </div>
                   <div className="ml-auto text-sm opacity-80">
                     {active && (a.isPlaying ? 'Reproduciendo' : 'Pausado')}
@@ -53,7 +61,8 @@ export default function MusicPlayer() {
       </ul>
 
       <p className="text-xs text-neutral-600 dark:text-neutral-400">
-        Consejo: pulsa “Mostrar reproductor” para fijarlo abajo y seguir escuchando mientras navegas.
+        Consejo: pulsa “Mostrar reproductor” para fijarlo abajo y seguir escuchando mientras
+        navegas.
       </p>
     </section>
   )

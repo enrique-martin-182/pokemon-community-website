@@ -23,10 +23,12 @@ export function useTheme() {
 
   useEffect(() => {
     applyTheme(theme)
-    try { localStorage.setItem(THEME_KEY, theme) } catch {}
+    try {
+      localStorage.setItem(THEME_KEY, theme)
+    } catch {}
   }, [theme])
 
-  const toggle = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'))
+  const toggle = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   const set = (t: Theme) => setTheme(t)
 
   return { theme, toggle, set }
