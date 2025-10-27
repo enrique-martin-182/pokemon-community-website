@@ -1,70 +1,178 @@
-import React, { useState } from 'react'
-import { calculate, Generations, Pokemon, Move, Field, TypeName } from '@smogon/calc'
-import { Weather, Terrain } from '@smogon/calc/dist/data/interface'
+import React, { useState, useEffect } from 'react';
+import { calculate, Generations, Pokemon, Move, Field, TypeName } from '@smogon/calc';
+import { Weather, Terrain } from '@smogon/calc/dist/data/interface';
+import { fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations } from '../services/pokeapi';
 
-const gen = Generations.get(8) // Use Generation 8 (Sword/Shield) for example
+const gen = Generations.get(8);
 
 interface PokemonDetails {
-  name: string
-  level: number
-  nature: string
-  evs: string
-  ivs: string
-  ability: string
-  item: string
-  teraType: string
+  name: string;
+  level: number;
+  nature: string;
+  evs: string;
+  ivs: string;
+  ability: string;
+  item: string;
+  teraType: string;
 }
 
 interface PokemonInputFormProps {
-  title: string
-  pokemon: PokemonDetails
-  onChange: (details: PokemonDetails) => void
+  title: string;
+  pokemon: PokemonDetails;
+  onChange: (details: PokemonDetails) => void;
+  allPokemonNames: string[];
+  abilityTranslations: Map<string, string>;
 }
 
-function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
+function formatName(name: string): string {
+  return name
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTranslations }: PokemonInputFormProps) {
+  const [abilities, setAbilities] = useState<string[]>([]);
+  const [searchQueryPokemon, setSearchQueryPokemon] = useState('');
+  const [filteredPokemon, setFilteredPokemon] = useState<string[]>(allPokemonNames);
+  const [isPokemonDropdownOpen, setIsPokemonDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    setFilteredPokemon(allPokemonNames);
+  }, [allPokemonNames]);
+
+  useEffect(() => {
+    if (pokemon.name) {
+      fetchPokemonByName(pokemon.name)
+        .then(data => {
+          const abilityNames = data.abilities.map(a => a.ability.name);
+          setAbilities(abilityNames);
+          if (abilityNames.length > 0 && !abilityNames.includes(pokemon.ability)) {
+            handleChange('ability', abilityNames[0]);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          setAbilities([]);
+        });
+    }
+  }, [pokemon.name]);
+
   const handleChange = (field: keyof PokemonDetails, value: string | number) => {
     onChange({
       ...pokemon,
       [field]: value,
-    })
-  }
+    });
+  };
+
+  const handlePokemonSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQueryPokemon(query);
+    if (query) {
+      setFilteredPokemon(
+        allPokemonNames.filter(name =>
+          name.toLowerCase().includes(query.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredPokemon(allPokemonNames);
+    }
+    handleChange('name', query);
+    setIsPokemonDropdownOpen(true);
+  };
+
+  const handleSelectPokemon = (name: string) => {
+    setSearchQueryPokemon(name);
+    handleChange('name', name);
+    setIsPokemonDropdownOpen(false);
+  };
 
   return (
     <div className="glass rounded-2xl p-4 space-y-2">
       <h3 className="text-xl font-semibold">{title}</h3>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 relative">
         <label className="text-neutral-400">Nombre:</label>
         <input
           type="text"
-          value={pokemon.name}
-          onChange={(e) => handleChange('name', e.target.value)}
+          value={searchQueryPokemon || pokemon.name}
+          onChange={handlePokemonSearchChange}
+          onFocus={() => {
+            setFilteredPokemon(allPokemonNames);
+            setIsPokemonDropdownOpen(true);
+          }}
+          onBlur={() => setTimeout(() => setIsPokemonDropdownOpen(false), 200)}
           className="p-2 rounded-md bg-neutral-800 text-white"
         />
+        {isPokemonDropdownOpen && filteredPokemon.length > 0 && (
+          <ul className="bg-neutral-800 rounded-md mt-1 max-h-48 overflow-y-auto absolute z-10 w-full top-full">
+            {filteredPokemon.map(name => (
+              <li
+                key={name}
+                onMouseDown={() => handleSelectPokemon(name)}
+                className="p-2 cursor-pointer hover:bg-neutral-700"
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Nivel:</label>
         <input
           type="number"
           value={pokemon.level}
-          onChange={(e) => handleChange('level', parseInt(e.target.value) || 100)}
+          onChange={e => handleChange('level', parseInt(e.target.value) || 100)}
           className="p-2 rounded-md bg-neutral-800 text-white"
         />
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Naturaleza:</label>
-        <input
-          type="text"
+        <select
           value={pokemon.nature}
-          onChange={(e) => handleChange('nature', e.target.value)}
+          onChange={e => handleChange('nature', e.target.value)}
           className="p-2 rounded-md bg-neutral-800 text-white"
-        />
+        >
+          {[
+            { name: 'None', inc: '-', dec: '-' },
+            { name: 'Adamant', inc: 'Atk', dec: 'SpA' },
+            { name: 'Bashful', inc: '-', dec: '-' },
+            { name: 'Bold', inc: 'Def', dec: 'Atk' },
+            { name: 'Brave', inc: 'Atk', dec: 'Spe' },
+            { name: 'Calm', inc: 'SpD', dec: 'Atk' },
+            { name: 'Careful', inc: 'SpD', dec: 'SpA' },
+            { name: 'Docile', inc: '-', dec: '-' },
+            { name: 'Gentle', inc: 'SpD', dec: 'Def' },
+            { name: 'Hardy', inc: '-', dec: '-' },
+            { name: 'Hasty', inc: 'Spe', dec: 'Def' },
+            { name: 'Impish', inc: 'Def', dec: 'SpA' },
+            { name: 'Jolly', inc: 'Spe', dec: 'SpA' },
+            { name: 'Lax', inc: 'Def', dec: 'SpD' },
+            { name: 'Lonely', inc: 'Atk', dec: 'Def' },
+            { name: 'Mild', inc: 'SpA', dec: 'Def' },
+            { name: 'Modest', inc: 'SpA', dec: 'Atk' },
+            { name: 'Naive', inc: 'Spe', dec: 'SpD' },
+            { name: 'Naughty', inc: 'Atk', dec: 'SpD' },
+            { name: 'Quiet', inc: 'SpA', dec: 'Spe' },
+            { name: 'Quirky', inc: '-', dec: '-' },
+            { name: 'Rash', inc: 'SpA', dec: 'SpD' },
+            { name: 'Relaxed', inc: 'Def', dec: 'Spe' },
+            { name: 'Sassy', inc: 'SpD', dec: 'Spe' },
+            { name: 'Serious', inc: '-', dec: '-' },
+            { name: 'Timid', inc: 'Spe', dec: 'Atk' },
+          ].map(nature => (
+            <option key={nature.name} value={nature.name}>
+              {nature.name} (+{nature.inc}, -{nature.dec})
+            </option>
+          ))}
+        </select>
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">EVs (ej. 252 HP / 252 Atk):</label>
         <input
           type="text"
           value={pokemon.evs}
-          onChange={(e) => handleChange('evs', e.target.value)}
+          onChange={e => handleChange('evs', e.target.value)}
           className="p-2 rounded-md bg-neutral-800 text-white"
         />
       </div>
@@ -73,28 +181,94 @@ function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
         <input
           type="text"
           value={pokemon.ivs}
-          onChange={(e) => handleChange('ivs', e.target.value)}
+          onChange={e => handleChange('ivs', e.target.value)}
           className="p-2 rounded-md bg-neutral-800 text-white"
         />
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Habilidad:</label>
-        <input
-          type="text"
+        <select
           value={pokemon.ability}
-          onChange={(e) => handleChange('ability', e.target.value)}
+          onChange={e => handleChange('ability', e.target.value)}
           className="p-2 rounded-md bg-neutral-800 text-white"
-        />
+        >
+          {abilities.map(ability => (
+            <option key={ability} value={ability}>
+              {formatName(abilityTranslations.get(ability) || ability)}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Objeto:</label>
-        <input type="text" className="p-2 rounded-md bg-neutral-800 text-white" />
+        <select
+          value={pokemon.item}
+          onChange={e => handleChange('item', e.target.value)}
+          className="p-2 rounded-md bg-neutral-800 text-white"
+        >
+          {[
+            'None',
+            'Choice Band',
+            'Choice Specs',
+            'Choice Scarf',
+            'Life Orb',
+            'Expert Belt',
+            'Muscle Band',
+            'Wise Glasses',
+            'Metronome',
+            'Adamant Orb',
+            'Griseous Orb',
+            'Lustrous Orb',
+            'Big Root',
+            'Binding Band',
+            'Scope Lens',
+            'Razor Claw',
+            'Absorb Bulb',
+            'Cell Battery',
+            'Weakness Policy',
+            'Assault Vest',
+            'Eviolite',
+            'Focus Sash',
+            'Rocky Helmet',
+            'Air Balloon',
+            'Black Sludge',
+            'Bright Powder',
+            'Lax Incense',
+            'Electric Seed',
+            'Grassy Seed',
+            'Misty Seed',
+            'Psychic Seed',
+            'Light Clay',
+            'Focus Band',
+            'Pixie Plate',
+            'Mind Plate',
+            'Draco Plate',
+            'Dread Plate',
+            'Earth Plate',
+            'Fist Plate',
+            'Flame Plate',
+            'Icicle Plate',
+            'Insect Plate',
+            'Iron Plate',
+            'Meadow Plate',
+            'Sky Plate',
+            'Splash Plate',
+            'Spooky Plate',
+            'Stone Plate',
+            'Toxic Plate',
+            'Zap Plate',
+          ].map(item => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Tera Tipo:</label>
         <select
           value={pokemon.teraType}
-          onChange={(e) => handleChange('teraType', e.target.value)}
+          onChange={e => handleChange('teraType', e.target.value)}
           className="p-2 rounded-md bg-neutral-800 text-white"
         >
           {[
@@ -116,7 +290,7 @@ function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
             'Steel',
             'Dark',
             'Fairy',
-          ].map((type) => (
+          ].map(type => (
             <option key={type} value={type}>
               {type}
             </option>
@@ -124,7 +298,7 @@ function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
         </select>
       </div>
     </div>
-  )
+  );
 }
 
 export default function DamageCalculator() {
@@ -134,51 +308,94 @@ export default function DamageCalculator() {
     nature: 'Jolly',
     evs: '252 Atk / 4 SpD / 252 Spe',
     ivs: '31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe',
-    ability: 'Blaze',
+    ability: 'blaze',
     item: 'Choice Band',
     teraType: 'Normal',
-  })
+  });
   const [defender, setDefender] = useState<PokemonDetails>({
     name: 'Dragapult',
     level: 100,
     nature: 'Timid',
     evs: '252 SpA / 4 SpD / 252 Spe',
     ivs: '31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe',
-    ability: 'Clear Body',
+    ability: 'clear-body',
     item: 'Choice Scarf',
     teraType: 'Normal',
-  })
-  const [moveName, setMoveName] = useState('Pyro Ball')
-  const [moveType, setMoveType] = useState('Fire')
-  const [moveCategory, setMoveCategory] = useState('Physical')
-  const [movePower, setMovePower] = useState(120)
-  const [weather, setWeather] = useState<string>('None')
-  const [terrain, setTerrain] = useState<string>('None')
-  const [isReflect, setIsReflect] = useState(false)
-  const [isLightScreen, setIsLightScreen] = useState(false)
-  const [result, setResult] = useState('')
+  });
+  const [moveName, setMoveName] = useState('Pyro Ball');
+  const [moveType, setMoveType] = useState('Fire');
+  const [moveCategory, setMoveCategory] = useState('Physical');
+  const [movePower, setMovePower] = useState(120);
+  const [weather, setWeather] = useState<string>('None');
+  const [terrain, setTerrain] = useState<string>('None');
+  const [isReflect, setIsReflect] = useState(false);
+  const [isLightScreen, setIsLightScreen] = useState(false);
+  const [result, setResult] = useState('');
+  const [allPokemonNames, setAllPokemonNames] = useState<string[]>([]);
+  const [abilityTranslations, setAbilityTranslations] = useState<Map<string, string>>(new Map());
+  const [moveTranslations, setMoveTranslations] = useState<Map<string, string>>(new Map());
+  const [allMoves, setAllMoves] = useState<string[]>([]);
+  const [searchQueryMove, setSearchQueryMove] = useState('');
+  const [filteredMoves, setFilteredMoves] = useState<string[]>(allMoves);
+  const [isMoveDropdownOpen, setIsMoveDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    setFilteredMoves(allMoves);
+  }, [allMoves]);
+
+  useEffect(() => {
+    fetchAllPokemonNames().then(setAllPokemonNames).catch(console.error);
+    fetchAllAbilitiesWithTranslations().then(setAbilityTranslations).catch(console.error);
+    fetchAllMovesWithTranslations().then(translations => {
+      setMoveTranslations(translations);
+      setAllMoves(Array.from(translations.keys()).sort());
+    }).catch(console.error);
+  }, []);
+
+  const handleMoveSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQueryMove(query);
+    if (query) {
+      setFilteredMoves(
+        allMoves.filter(move =>
+          (moveTranslations.get(move) || move).toLowerCase().includes(query.toLowerCase()) ||
+          move.toLowerCase().includes(query.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredMoves(allMoves);
+    }
+    setIsMoveDropdownOpen(true);
+  };
+
+  const handleSelectMove = (move: string) => {
+    const displayName = `${moveTranslations.get(move) || move} (${formatName(move)})`;
+    setSearchQueryMove(displayName);
+    setMoveName(move);
+    setIsMoveDropdownOpen(false);
+  };
 
   const parseEVs = (evsString: string) => {
-    const evs: Record<string, number> = {}
-    evsString.split('/').forEach((part) => {
-      const [value, stat] = part.trim().split(' ')
+    const evs: Record<string, number> = {};
+    evsString.split('/').forEach(part => {
+      const [value, stat] = part.trim().split(' ');
       if (value && stat) {
-        evs[stat.toLowerCase()] = parseInt(value)
+        evs[stat.toLowerCase()] = parseInt(value);
       }
-    })
-    return evs
-  }
+    });
+    return evs;
+  };
 
   const parseIVs = (ivsString: string) => {
-    const ivs: Record<string, number> = {}
-    ivsString.split('/').forEach((part) => {
-      const [value, stat] = part.trim().split(' ')
+    const ivs: Record<string, number> = {};
+    ivsString.split('/').forEach(part => {
+      const [value, stat] = part.trim().split(' ');
       if (value && stat) {
-        ivs[stat.toLowerCase()] = parseInt(value)
+        ivs[stat.toLowerCase()] = parseInt(value);
       }
-    })
-    return ivs
-  }
+    });
+    return ivs;
+  };
 
   const performCalculation = () => {
     try {
@@ -187,20 +404,20 @@ export default function DamageCalculator() {
         nature: attacker.nature,
         evs: parseEVs(attacker.evs),
         ivs: parseIVs(attacker.ivs),
-        ability: attacker.ability,
+        ability: formatAbilityName(attacker.ability),
         item: attacker.item,
         teraType: attacker.teraType as TypeName,
-      })
+      });
       const defenderPokemon = new Pokemon(gen, defender.name, {
         level: defender.level,
         nature: defender.nature,
         evs: parseEVs(defender.evs),
         ivs: parseIVs(defender.ivs),
-        ability: defender.ability,
+        ability: formatAbilityName(defender.ability),
         item: defender.item,
         teraType: defender.teraType as TypeName,
-      })
-      const move = new Move(gen, moveName)
+      });
+      const move = new Move(gen, moveName);
       const field = new Field({
         weather:
           weather === 'None' ? undefined : weather === 'Sunny' ? 'Sun' : (weather as Weather),
@@ -209,22 +426,22 @@ export default function DamageCalculator() {
           isReflect: isReflect,
           isLightScreen: isLightScreen,
         },
-      })
+      });
 
-      const calculateResult = calculate(gen, attackerPokemon, defenderPokemon, move, field)
+      const calculateResult = calculate(gen, attackerPokemon, defenderPokemon, move, field);
 
       if (calculateResult.damage) {
         const damageText = Array.isArray(calculateResult.damage)
           ? `${calculateResult.damage[0]} - ${calculateResult.damage[calculateResult.damage.length - 1]}`
-          : calculateResult.damage
-        setResult(`Damage: ${damageText} (${calculateResult.desc()})`)
+          : calculateResult.damage;
+        setResult(`Damage: ${damageText} (${calculateResult.desc()})`);
       } else {
-        setResult('No damage calculated.')
+        setResult('No damage calculated.');
       }
     } catch (e: unknown) {
-      setResult(`Error: ${(e as Error).message}`)
+      setResult(`Error: ${(e as Error).message}`);
     }
-  }
+  };
 
   return (
     <section className="space-y-6">
@@ -232,25 +449,43 @@ export default function DamageCalculator() {
       <div className="glass rounded-2xl p-6 space-y-4">
         <p className="text-neutral-300">Calcula el daño entre Pokémon.</p>
         <div className="grid md:grid-cols-2 gap-4">
-          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} />
-          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} />
+          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} />
+          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 relative">
           <label className="text-neutral-400">Movimiento:</label>
           <input
             type="text"
-            value={moveName}
-            onChange={(e) => setMoveName(e.target.value)}
+            value={searchQueryMove || moveName}
+            onChange={handleMoveSearchChange}
+            onFocus={() => {
+              setFilteredMoves(allMoves);
+              setIsMoveDropdownOpen(true);
+            }}
+            onBlur={() => setTimeout(() => setIsMoveDropdownOpen(false), 200)}
             className="p-2 rounded-md bg-neutral-800 text-white"
           />
+          {isMoveDropdownOpen && filteredMoves.length > 0 && (
+            <ul className="bg-neutral-800 rounded-md mt-1 max-h-48 overflow-y-auto absolute z-10 w-full top-full">
+              {filteredMoves.map(move => (
+                <li
+                  key={move}
+                  onMouseDown={() => handleSelectMove(move)}
+                  className="p-2 cursor-pointer hover:bg-neutral-700"
+                >
+                  {moveTranslations.get(move) || move} ({formatName(move)})
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-neutral-400">Tipo de Movimiento:</label>
           <select
             value={moveType}
-            onChange={(e) => setMoveType(e.target.value)}
+            onChange={e => setMoveType(e.target.value)}
             className="p-2 rounded-md bg-neutral-800 text-white"
           >
             {[
@@ -272,7 +507,7 @@ export default function DamageCalculator() {
               'Steel',
               'Dark',
               'Fairy',
-            ].map((type) => (
+            ].map(type => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -284,10 +519,10 @@ export default function DamageCalculator() {
           <label className="text-neutral-400">Categoría de Movimiento:</label>
           <select
             value={moveCategory}
-            onChange={(e) => setMoveCategory(e.target.value)}
+            onChange={e => setMoveCategory(e.target.value)}
             className="p-2 rounded-md bg-neutral-800 text-white"
           >
-            {['Physical', 'Special', 'Status'].map((category) => (
+            {['Physical', 'Special', 'Status'].map(category => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -300,7 +535,7 @@ export default function DamageCalculator() {
           <input
             type="number"
             value={movePower}
-            onChange={(e) => setMovePower(parseInt(e.target.value) || 0)}
+            onChange={e => setMovePower(parseInt(e.target.value) || 0)}
             className="p-2 rounded-md bg-neutral-800 text-white"
           />
         </div>
@@ -311,10 +546,10 @@ export default function DamageCalculator() {
             <label className="text-neutral-400">Clima:</label>
             <select
               value={weather}
-              onChange={(e) => setWeather(e.target.value)}
+              onChange={e => setWeather(e.target.value)}
               className="p-2 rounded-md bg-neutral-800 text-white"
             >
-              {['None', 'Sunny', 'Rain', 'Sand', 'Hail', 'Snow'].map((w) => (
+              {['None', 'Sunny', 'Rain', 'Sand', 'Hail', 'Snow'].map(w => (
                 <option key={w} value={w}>
                   {w}
                 </option>
@@ -325,10 +560,10 @@ export default function DamageCalculator() {
             <label className="text-neutral-400">Terreno:</label>
             <select
               value={terrain}
-              onChange={(e) => setTerrain(e.target.value)}
+              onChange={e => setTerrain(e.target.value)}
               className="p-2 rounded-md bg-neutral-800 text-white"
             >
-              {['None', 'Electric', 'Grassy', 'Misty', 'Psychic'].map((t) => (
+              {['None', 'Electric', 'Grassy', 'Misty', 'Psychic'].map(t => (
                 <option key={t} value={t}>
                   {t}
                 </option>
@@ -339,7 +574,7 @@ export default function DamageCalculator() {
             <input
               type="checkbox"
               checked={isReflect}
-              onChange={(e) => setIsReflect(e.target.checked)}
+              onChange={e => setIsReflect(e.target.checked)}
               className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
             />
             <label className="text-neutral-400">Reflejo (Reflect)</label>
@@ -348,7 +583,7 @@ export default function DamageCalculator() {
             <input
               type="checkbox"
               checked={isLightScreen}
-              onChange={(e) => setIsLightScreen(e.target.checked)}
+              onChange={e => setIsLightScreen(e.target.checked)}
               className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
             />
             <label className="text-neutral-400">Pantalla Luz (Light Screen)</label>
@@ -364,5 +599,5 @@ export default function DamageCalculator() {
         {result && <p className="text-neutral-200 mt-4">{result}</p>}
       </div>
     </section>
-  )
+  );
 }
