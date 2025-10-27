@@ -103,8 +103,24 @@ export default function Header() {
                 Minijuego
               </NavLink>
             </li>
-                        <li><NavLink to="/musica" className={({ isActive }) => btn('/musica', isActive)} onClick={() => setOpen(false)}>Música</NavLink></li>
-                        <li><NavLink to="/calculadora" className={({ isActive }) => btn('/calculadora', isActive)} onClick={() => setOpen(false)}>Calculadora</NavLink></li>
+            <li>
+              <NavLink
+                to="/musica"
+                className={({ isActive }) => btn('/musica', isActive)}
+                onClick={() => setOpen(false)}
+              >
+                Música
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/calculadora"
+                className={({ isActive }) => btn('/calculadora', isActive)}
+                onClick={() => setOpen(false)}
+              >
+                Calculadora
+              </NavLink>
+            </li>
 
             <li className="md:hidden">
               <button

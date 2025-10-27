@@ -8,11 +8,20 @@ export const STAT_LABELS: Record<StatKey, string> = {
   speed: 'Velocidad',
 }
 
-export type Pokemon = {
+export interface Pokemon {
   id: number
   name: string
   sprite: string
   stats: Record<StatKey, number>
+}
+
+interface PokemonStat {
+  base_stat: number
+  effort: number
+  stat: {
+    name: StatKey
+    url: string
+  }
 }
 
 const MAX_ID = 1025
@@ -27,7 +36,9 @@ function hydrateCache() {
       const obj = JSON.parse(s) as Record<string, Pokemon>
       for (const k of Object.keys(obj)) memCache.set(Number(k), obj[k])
     }
-  } catch {}
+  } catch {
+    // Ignore errors
+  }
 }
 
 function persistToLS(p: Pokemon) {
@@ -36,7 +47,9 @@ function persistToLS(p: Pokemon) {
     const obj = s ? (JSON.parse(s) as Record<string, Pokemon>) : {}
     obj[String(p.id)] = p
     localStorage.setItem('qkk-cache', JSON.stringify(obj))
-  } catch {}
+  } catch {
+    // Ignore errors
+  }
 }
 
 export async function fetchPokemon(id: number): Promise<Pokemon> {
@@ -44,7 +57,7 @@ export async function fetchPokemon(id: number): Promise<Pokemon> {
   const res = await fetch(`${API}${id}`)
   if (!res.ok) throw new Error(`PokeAPI ${id} -> ${res.status}`)
   const data = await res.json()
-  const get = (k: StatKey) => data.stats.find((s: any) => s.stat.name === k)?.base_stat ?? 0
+  const get = (k: StatKey) => data.stats.find((s: PokemonStat) => s.stat.name === k)?.base_stat ?? 0
   const poke: Pokemon = {
     id,
     name: data.name,

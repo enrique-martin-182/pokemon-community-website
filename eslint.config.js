@@ -1,40 +1,56 @@
-import globals from "globals";
-import js from "@eslint/js";
-import * as tseslint from "@typescript-eslint/eslint-plugin";
-import pluginReact from "eslint-plugin-react";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import eslintConfigPrettier from "eslint-config-prettier";
-import eslintPluginPrettier from "eslint-plugin-prettier";
+import globals from 'globals'
+import js from '@eslint/js'
+import tseslint from 'typescript-eslint'
+import pluginReact from 'eslint-plugin-react'
+import pluginReactHooks from 'eslint-plugin-react-hooks'
+import eslintConfigPrettier from 'eslint-config-prettier'
+import eslintPluginPrettier from 'eslint-plugin-prettier'
 
 export default [
   // Global ignores
   {
-    ignores: ["dist/", "build/", "node_modules/", "*.config.js"],
+    ignores: [
+      'dist/',
+      'build/',
+      'node_modules/',
+      'eslint.config.js',
+      'tailwind.config.js',
+      'vite.config.ts',
+      'prettier.config.js',
+    ],
+  },
+
+  // Configuration for CommonJS files
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+      },
+    },
   },
 
   // Base ESLint recommended rules
   js.configs.recommended,
 
   // TypeScript recommended rules
-  tseslint.configs.recommended,
-  tseslint.configs.stylistic,
-
-  // React recommended rules
-  pluginReact.configs.recommended,
-  pluginReactHooks.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...tseslint.configs.stylistic,
 
   {
     // Configuration for all files
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
         },
-        ecmaVersion: "latest",
-        sourceType: "module",
-        project: ["./tsconfig.json"], // Specify your tsconfig.json for type-aware linting
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: ['./tsconfig.json'], // Specify your tsconfig.json for type-aware linting
       },
       globals: {
         ...globals.browser,
@@ -43,24 +59,24 @@ export default [
     },
     settings: {
       react: {
-        version: "detect", // Automatically detect the React version
+        version: 'detect', // Automatically detect the React version
       },
     },
     plugins: {
       react: pluginReact,
-      "react-hooks": pluginReactHooks,
+      'react-hooks': pluginReactHooks,
       prettier: eslintPluginPrettier,
     },
     rules: {
       // Custom rules or overrides
-      "react/react-in-jsx-scope": "off", // Not needed for React 17+ with new JSX transform
-      "react/prop-types": "off", // Disable if using TypeScript for prop-types
-      "prettier/prettier": "error", // Report Prettier issues as ESLint errors
-      "arrow-body-style": "off", // Example: disable a rule that might conflict with Prettier's preferences
-      "prefer-arrow-callback": "off", // Example: disable another rule
+      'react/react-in-jsx-scope': 'off', // Not needed for React 17+ with new JSX transform
+      'react/prop-types': 'off', // Disable if using TypeScript for prop-types
+      'prettier/prettier': 'error', // Report Prettier issues as ESLint errors
+      'arrow-body-style': 'off', // Example: disable a rule that might conflict with Prettier's preferences
+      'prefer-arrow-callback': 'off', // Example: disable another rule
     },
   },
 
   // Ensure prettier config is last to disable conflicting rules
   eslintConfigPrettier,
-];
+]

@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { STAT_LABELS, StatKey, Pokemon } from '../services/pokeapi'
 import { useGameLogic } from '../hooks/useGameLogic'
 

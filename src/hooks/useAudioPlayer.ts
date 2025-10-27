@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { TRACKS } from '../music/tracks'
 import { Track } from '../types'
 
-type AudioCtxType = {
+interface AudioCtxType {
   tracks: Track[]
   index: number
   track: Track | null
@@ -40,6 +41,7 @@ export function useAudioPlayer(): AudioCtxType {
       const i = TRACKS.findIndex((t: Track) => t.id === id)
       return i >= 0 ? i : 0
     } catch {
+      // Ignore errors, use default
       return 0
     }
   })
@@ -51,6 +53,7 @@ export function useAudioPlayer(): AudioCtxType {
       const v = Number(localStorage.getItem(VOL_KEY))
       return isFinite(v) && v >= 0 && v <= 1 ? v : 0.9
     } catch {
+      // Ignore errors, use default
       return 0.9
     }
   })
@@ -62,6 +65,7 @@ export function useAudioPlayer(): AudioCtxType {
       const v = localStorage.getItem(VIS_KEY)
       return v === null ? true : v === '1'
     } catch {
+      // Ignore errors, use default
       return true
     }
   })
@@ -115,7 +119,6 @@ export function useAudioPlayer(): AudioCtxType {
     setDuration(0)
     el.load()
     if (isPlaying) el.play().catch(() => setIsPlaying(false))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, track?.src])
 
   useEffect(() => {
@@ -130,20 +133,26 @@ export function useAudioPlayer(): AudioCtxType {
     el.volume = volume
     try {
       localStorage.setItem(VOL_KEY, String(volume))
-    } catch {}
+    } catch {
+      // Ignore errors
+    }
   }, [volume])
 
   useEffect(() => {
     if (track)
       try {
         localStorage.setItem(LAST_KEY, track.id)
-      } catch {}
+      } catch {
+        // Ignore errors
+      }
   }, [track?.id])
 
   useEffect(() => {
     try {
       localStorage.setItem(VIS_KEY, visible ? '1' : '0')
-    } catch {}
+    } catch {
+      // Ignore errors
+    }
   }, [visible])
 
   function togglePlay() {
@@ -228,3 +237,4 @@ export function useAudioPlayer(): AudioCtxType {
     toggleVisible,
   }
 }
+/* eslint-enable @typescript-eslint/no-unused-expressions */

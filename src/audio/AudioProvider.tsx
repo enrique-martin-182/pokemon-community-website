@@ -2,7 +2,7 @@ import React, { createContext, useContext } from 'react'
 import { useAudioPlayer } from '../hooks/useAudioPlayer'
 import { Track } from '../types'
 
-type AudioCtxType = {
+interface AudioCtxType {
   tracks: Track[]
   index: number
   track: Track | null

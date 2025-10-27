@@ -14,7 +14,9 @@ function getInitialTheme(): Theme {
   try {
     const saved = localStorage.getItem(THEME_KEY)
     if (saved === 'light' || saved === 'dark') return saved
-  } catch {}
+  } catch {
+    // Ignore errors, use default
+  }
   return 'dark'
 }
 
@@ -25,7 +27,9 @@ export function useTheme() {
     applyTheme(theme)
     try {
       localStorage.setItem(THEME_KEY, theme)
-    } catch {}
+    } catch {
+      // Ignore errors
+    }
   }, [theme])
 
   const toggle = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))

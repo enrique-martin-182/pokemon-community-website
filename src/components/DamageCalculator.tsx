@@ -1,23 +1,24 @@
-import React, { useState } from 'react';
-import { calculate, Generations, Pokemon, Move, Field } from '@smogon/calc';
+import React, { useState } from 'react'
+import { calculate, Generations, Pokemon, Move, Field, TypeName } from '@smogon/calc'
+import { Weather, Terrain } from '@smogon/calc/dist/data/interface'
 
-const gen = Generations.get(8); // Use Generation 8 (Sword/Shield) for example
+const gen = Generations.get(8) // Use Generation 8 (Sword/Shield) for example
 
 interface PokemonDetails {
-  name: string;
-  level: number;
-  nature: string;
-  evs: string;
-  ivs: string;
-  ability: string;
-  item: string;
-  teraType: string;
+  name: string
+  level: number
+  nature: string
+  evs: string
+  ivs: string
+  ability: string
+  item: string
+  teraType: string
 }
 
 interface PokemonInputFormProps {
-  title: string;
-  pokemon: PokemonDetails;
-  onChange: (details: PokemonDetails) => void;
+  title: string
+  pokemon: PokemonDetails
+  onChange: (details: PokemonDetails) => void
 }
 
 function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
@@ -25,8 +26,8 @@ function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
     onChange({
       ...pokemon,
       [field]: value,
-    });
-  };
+    })
+  }
 
   return (
     <div className="glass rounded-2xl p-4 space-y-2">
@@ -87,10 +88,7 @@ function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Objeto:</label>
-        <input
-          type="text"
-          className="p-2 rounded-md bg-neutral-800 text-white"
-        />
+        <input type="text" className="p-2 rounded-md bg-neutral-800 text-white" />
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Tera Tipo:</label>
@@ -100,15 +98,33 @@ function PokemonInputForm({ title, pokemon, onChange }: PokemonInputFormProps) {
           className="p-2 rounded-md bg-neutral-800 text-white"
         >
           {[
-            'Normal', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison',
-            'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Steel', 'Dark', 'Fairy',
+            'Normal',
+            'Fire',
+            'Water',
+            'Grass',
+            'Electric',
+            'Ice',
+            'Fighting',
+            'Poison',
+            'Ground',
+            'Flying',
+            'Psychic',
+            'Bug',
+            'Rock',
+            'Ghost',
+            'Dragon',
+            'Steel',
+            'Dark',
+            'Fairy',
           ].map((type) => (
-            <option key={type} value={type}>{type}</option>
+            <option key={type} value={type}>
+              {type}
+            </option>
           ))}
         </select>
       </div>
     </div>
-  );
+  )
 }
 
 export default function DamageCalculator() {
@@ -121,7 +137,7 @@ export default function DamageCalculator() {
     ability: 'Blaze',
     item: 'Choice Band',
     teraType: 'Normal',
-  });
+  })
   const [defender, setDefender] = useState<PokemonDetails>({
     name: 'Dragapult',
     level: 100,
@@ -131,38 +147,38 @@ export default function DamageCalculator() {
     ability: 'Clear Body',
     item: 'Choice Scarf',
     teraType: 'Normal',
-  });
-  const [moveName, setMoveName] = useState('Pyro Ball');
-  const [moveType, setMoveType] = useState('Fire');
-  const [moveCategory, setMoveCategory] = useState('Physical');
-  const [movePower, setMovePower] = useState(120);
-  const [weather, setWeather] = useState<string>('None');
-  const [terrain, setTerrain] = useState<string>('None');
-  const [isReflect, setIsReflect] = useState(false);
-  const [isLightScreen, setIsLightScreen] = useState(false);
-  const [result, setResult] = useState('');
+  })
+  const [moveName, setMoveName] = useState('Pyro Ball')
+  const [moveType, setMoveType] = useState('Fire')
+  const [moveCategory, setMoveCategory] = useState('Physical')
+  const [movePower, setMovePower] = useState(120)
+  const [weather, setWeather] = useState<string>('None')
+  const [terrain, setTerrain] = useState<string>('None')
+  const [isReflect, setIsReflect] = useState(false)
+  const [isLightScreen, setIsLightScreen] = useState(false)
+  const [result, setResult] = useState('')
 
   const parseEVs = (evsString: string) => {
-    const evs: { [stat: string]: number } = {};
-    evsString.split('/').forEach(part => {
-      const [value, stat] = part.trim().split(' ');
+    const evs: Record<string, number> = {}
+    evsString.split('/').forEach((part) => {
+      const [value, stat] = part.trim().split(' ')
       if (value && stat) {
-        evs[stat.toLowerCase()] = parseInt(value);
+        evs[stat.toLowerCase()] = parseInt(value)
       }
-    });
-    return evs;
-  };
+    })
+    return evs
+  }
 
   const parseIVs = (ivsString: string) => {
-    const ivs: { [stat: string]: number } = {};
-    ivsString.split('/').forEach(part => {
-      const [value, stat] = part.trim().split(' ');
+    const ivs: Record<string, number> = {}
+    ivsString.split('/').forEach((part) => {
+      const [value, stat] = part.trim().split(' ')
       if (value && stat) {
-        ivs[stat.toLowerCase()] = parseInt(value);
+        ivs[stat.toLowerCase()] = parseInt(value)
       }
-    });
-    return ivs;
-  };
+    })
+    return ivs
+  }
 
   const performCalculation = () => {
     try {
@@ -173,8 +189,8 @@ export default function DamageCalculator() {
         ivs: parseIVs(attacker.ivs),
         ability: attacker.ability,
         item: attacker.item,
-        teraType: attacker.teraType as any,
-      });
+        teraType: attacker.teraType as TypeName,
+      })
       const defenderPokemon = new Pokemon(gen, defender.name, {
         level: defender.level,
         nature: defender.nature,
@@ -182,34 +198,33 @@ export default function DamageCalculator() {
         ivs: parseIVs(defender.ivs),
         ability: defender.ability,
         item: defender.item,
-        teraType: defender.teraType as any,
-      });
-      const move = new Move(gen, moveName);
+        teraType: defender.teraType as TypeName,
+      })
+      const move = new Move(gen, moveName)
       const field = new Field({
-        weather: weather === 'None' ? undefined : (weather === 'Sunny' ? 'Sun' : weather as any),
-        terrain: terrain === 'None' ? undefined : terrain as any,
+        weather:
+          weather === 'None' ? undefined : weather === 'Sunny' ? 'Sun' : (weather as Weather),
+        terrain: terrain === 'None' ? undefined : (terrain as Terrain),
         defenderSide: {
           isReflect: isReflect,
           isLightScreen: isLightScreen,
         },
-      });
+      })
 
-      const calculateResult = calculate(gen, attackerPokemon, defenderPokemon, move, field);
+      const calculateResult = calculate(gen, attackerPokemon, defenderPokemon, move, field)
 
       if (calculateResult.damage) {
         const damageText = Array.isArray(calculateResult.damage)
           ? `${calculateResult.damage[0]} - ${calculateResult.damage[calculateResult.damage.length - 1]}`
-          : calculateResult.damage;
-        setResult(
-          `Damage: ${damageText} (${calculateResult.desc()})`
-        );
+          : calculateResult.damage
+        setResult(`Damage: ${damageText} (${calculateResult.desc()})`)
       } else {
-        setResult('No damage calculated.');
+        setResult('No damage calculated.')
       }
-    } catch (e: any) {
-      setResult(`Error: ${e.message}`);
+    } catch (e: unknown) {
+      setResult(`Error: ${(e as Error).message}`)
     }
-  };
+  }
 
   return (
     <section className="space-y-6">
@@ -239,10 +254,28 @@ export default function DamageCalculator() {
             className="p-2 rounded-md bg-neutral-800 text-white"
           >
             {[
-              'Normal', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison',
-              'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Steel', 'Dark', 'Fairy',
+              'Normal',
+              'Fire',
+              'Water',
+              'Grass',
+              'Electric',
+              'Ice',
+              'Fighting',
+              'Poison',
+              'Ground',
+              'Flying',
+              'Psychic',
+              'Bug',
+              'Rock',
+              'Ghost',
+              'Dragon',
+              'Steel',
+              'Dark',
+              'Fairy',
             ].map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
           </select>
         </div>
@@ -255,7 +288,9 @@ export default function DamageCalculator() {
             className="p-2 rounded-md bg-neutral-800 text-white"
           >
             {['Physical', 'Special', 'Status'].map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </select>
         </div>
@@ -280,7 +315,9 @@ export default function DamageCalculator() {
               className="p-2 rounded-md bg-neutral-800 text-white"
             >
               {['None', 'Sunny', 'Rain', 'Sand', 'Hail', 'Snow'].map((w) => (
-                <option key={w} value={w}>{w}</option>
+                <option key={w} value={w}>
+                  {w}
+                </option>
               ))}
             </select>
           </div>
@@ -292,7 +329,9 @@ export default function DamageCalculator() {
               className="p-2 rounded-md bg-neutral-800 text-white"
             >
               {['None', 'Electric', 'Grassy', 'Misty', 'Psychic'].map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </div>
@@ -325,5 +364,5 @@ export default function DamageCalculator() {
         {result && <p className="text-neutral-200 mt-4">{result}</p>}
       </div>
     </section>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { REVEAL_MS_CORRECT, REVEAL_MS_WRONG } from '../gameConfig'
 import { fetchPokemon, randomId, Pokemon, StatKey } from '../services/pokeapi'
 

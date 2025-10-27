@@ -15,7 +15,8 @@
     "@smogon/calc": "^0.10.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.9.4"
+    "react-router-dom": "^7.9.4",
+    "typescript-eslint": "^8.46.2"
   },
   "devDependencies": {
     "@eslint/compat": "^1.4.0",

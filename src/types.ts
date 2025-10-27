@@ -1,4 +1,4 @@
-export type Tournament = {
+export interface Tournament {
   id: string
   name: string
   dateISO: string // ISO date string
@@ -8,7 +8,7 @@ export type Tournament = {
   notes?: string
 }
 
-export type Track = {
+export interface Track {
   id: string
   title: string
   artist?: string
