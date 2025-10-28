@@ -8,11 +8,12 @@ export const STAT_LABELS: Record<StatKey, string> = {
   speed: 'Velocidad',
 }
 
-export interface Pokemon {
+export interface PokemonInfo {
   id: number
   name: string
   sprite: string
   stats: Record<StatKey, number>
+  abilities: { ability: { name: string } }[];
 }
 
 interface PokemonStat {
@@ -28,12 +29,12 @@ const MAX_ID = 1025
 const API = 'https://pokeapi.co/api/v2/pokemon/'
 
 // --- Caché en memoria + localStorage
-const memCache = new Map<number, Pokemon>()
+const memCache = new Map<number, PokemonInfo>()
 function hydrateCache() {
   try {
     const s = localStorage.getItem('qkk-cache')
     if (s) {
-      const obj = JSON.parse(s) as Record<string, Pokemon>
+      const obj = JSON.parse(s) as Record<string, PokemonInfo>
       for (const k of Object.keys(obj)) memCache.set(Number(k), obj[k])
     }
   } catch {
@@ -41,10 +42,10 @@ function hydrateCache() {
   }
 }
 
-function persistToLS(p: Pokemon) {
+function persistToLS(p: PokemonInfo) {
   try {
     const s = localStorage.getItem('qkk-cache')
-    const obj = s ? (JSON.parse(s) as Record<string, Pokemon>) : {}
+    const obj = s ? (JSON.parse(s) as Record<string, PokemonInfo>) : {}
     obj[String(p.id)] = p
     localStorage.setItem('qkk-cache', JSON.stringify(obj))
   } catch {
@@ -52,13 +53,13 @@ function persistToLS(p: Pokemon) {
   }
 }
 
-export async function fetchPokemon(id: number): Promise<Pokemon> {
+export async function fetchPokemon(id: number): Promise<PokemonInfo> {
   if (memCache.has(id)) return memCache.get(id)!
   const res = await fetch(`${API}${id}`)
   if (!res.ok) throw new Error(`PokeAPI ${id} -> ${res.status}`)
   const data = await res.json()
   const get = (k: StatKey) => data.stats.find((s: PokemonStat) => s.stat.name === k)?.base_stat ?? 0
-  const poke: Pokemon = {
+  const poke: PokemonInfo = {
     id,
     name: data.name,
     sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
@@ -70,24 +71,35 @@ export async function fetchPokemon(id: number): Promise<Pokemon> {
       'special-defense': get('special-defense'),
       speed: get('speed'),
     },
+    abilities: data.abilities,
   }
   memCache.set(id, poke)
   persistToLS(poke)
   return poke
 }
 
-export interface PokemonData {
-  name: string;
-  abilities: { ability: { name: string } }[];
-}
-
-export async function fetchPokemonByName(name: string): Promise<PokemonData> {
+export async function fetchPokemonByName(name: string): Promise<PokemonInfo> {
   const res = await fetch(`${API}${name.toLowerCase()}`);
   if (!res.ok) {
     throw new Error(`PokeAPI ${name} -> ${res.status}`);
   }
   const data = await res.json();
-  return data;
+  const get = (k: StatKey) => data.stats.find((s: PokemonStat) => s.stat.name === k)?.base_stat ?? 0;
+  const poke: PokemonInfo = {
+    id: data.id,
+    name: data.name,
+    sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data.id}.png`,
+    stats: {
+      hp: get('hp'),
+      attack: get('attack'),
+      defense: get('defense'),
+      'special-attack': get('special-attack'),
+      'special-defense': get('special-defense'),
+      speed: get('speed'),
+    },
+    abilities: data.abilities,
+  };
+  return poke;
 }
 
 export async function fetchAllPokemonNames(): Promise<string[]> {

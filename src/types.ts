@@ -6,6 +6,7 @@ export interface Tournament {
   location: 'Córdoba' | 'Online' | string
   registrationLink?: string
   notes?: string
+  rounds?: string[]
 }
 
 export interface Track {
@@ -14,4 +15,9 @@ export interface Track {
   artist?: string
   src: string
   cover?: string
+}
+
+export interface GymLeader {
+  type: string;
+  name: string;
 }

@@ -9,6 +9,7 @@ const Tournaments = lazy(() => import('./components/Tournaments'))
 const Game = lazy(() => import('./components/Game'))
 const MusicPlayer = lazy(() => import('./components/MusicPlayer'))
 const DamageCalculator = lazy(() => import('./components/DamageCalculator'))
+const GymLeaders = lazy(() => import('./components/GymLeaders'))
 
 function Home() {
   const navigate = useNavigate()
@@ -81,7 +82,12 @@ export default function App() {
           <Suspense fallback={<div>Cargando...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/torneos" element={<Tournaments />} />
+              <Route path="/torneos" element={
+                <div className="space-y-12">
+                  <Tournaments />
+                  <GymLeaders />
+                </div>
+              } />
               <Route path="/juego" element={<Game />} />
               <Route path="/musica" element={<MusicPlayer />} />
               <Route path="/calculadora" element={<DamageCalculator />} />

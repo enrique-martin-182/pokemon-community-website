@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { calculate, Generations, Pokemon, Move, Field, TypeName } from '@smogon/calc';
 import { Weather, Terrain } from '@smogon/calc/dist/data/interface';
-import { fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations } from '../services/pokeapi';
+import Tooltip from './Tooltip';
+import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations } from '../services/pokeapi';
 
 const gen = Generations.get(8);
 
@@ -36,6 +37,7 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
   const [searchQueryPokemon, setSearchQueryPokemon] = useState('');
   const [filteredPokemon, setFilteredPokemon] = useState<string[]>(allPokemonNames);
   const [isPokemonDropdownOpen, setIsPokemonDropdownOpen] = useState(false);
+  const [hoveredPokemon, setHoveredPokemon] = useState<PokemonInfo | null>(null);
 
   useEffect(() => {
     setFilteredPokemon(allPokemonNames);
@@ -87,36 +89,8 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
     setIsPokemonDropdownOpen(false);
   };
 
-  return (
-    <div className="glass rounded-2xl p-4 space-y-2">
-      <h3 className="text-xl font-semibold">{title}</h3>
-      <div className="flex flex-col gap-1 relative">
-        <label className="text-neutral-400">Nombre:</label>
-        <input
-          type="text"
-          value={searchQueryPokemon || pokemon.name}
-          onChange={handlePokemonSearchChange}
-          onFocus={() => {
-            setFilteredPokemon(allPokemonNames);
-            setIsPokemonDropdownOpen(true);
-          }}
-          onBlur={() => setTimeout(() => setIsPokemonDropdownOpen(false), 200)}
-          className="p-2 rounded-md bg-neutral-800 text-white"
-        />
-        {isPokemonDropdownOpen && filteredPokemon.length > 0 && (
-          <ul className="bg-neutral-800 rounded-md mt-1 max-h-48 overflow-y-auto absolute z-10 w-full top-full">
-            {filteredPokemon.map(name => (
-              <li
-                key={name}
-                onMouseDown={() => handleSelectPokemon(name)}
-                className="p-2 cursor-pointer hover:bg-neutral-700"
-              >
-                {name}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+
+
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Nivel:</label>
         <input
