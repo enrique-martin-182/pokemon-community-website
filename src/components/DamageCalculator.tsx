@@ -26,7 +26,8 @@ interface PokemonInputFormProps {
   allPokemonNames: string[];
   abilityTranslations: Map<string, string>;
   onPokemonHover: (name: string, event: React.MouseEvent<HTMLLIElement>) => void;
-  onPokemonLeave: () => void;
+  setHoveredPokemonData: React.Dispatch<React.SetStateAction<PokemonInfo | null>>;
+  setHoveredPokemonPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number; } | null>>;
 }
 
 function formatName(name: string): string {
@@ -43,7 +44,7 @@ function formatAbilityName(name: string): string {
     .join(' ');
 }
 
-function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTranslations, onPokemonHover, onPokemonLeave }: PokemonInputFormProps) {
+function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTranslations, onPokemonHover, setHoveredPokemonData, setHoveredPokemonPosition }: PokemonInputFormProps) {
   const [abilities, setAbilities] = useState<string[]>([]);
   const [searchQueryPokemon, setSearchQueryPokemon] = useState('');
   const [filteredPokemon, setFilteredPokemon] = useState<string[]>(allPokemonNames);
@@ -97,6 +98,8 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
     setSearchQueryPokemon(name);
     handleChange('name', name);
     setIsPokemonDropdownOpen(false);
+    setHoveredPokemonData(null);
+    setHoveredPokemonPosition(null);
   };
 
   return (
@@ -122,7 +125,7 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
                 key={name}
                 onMouseDown={() => handleSelectPokemon(name)}
                 onMouseEnter={(e) => onPokemonHover(name, e)}
-                onMouseLeave={onPokemonLeave}
+                onMouseLeave={() => { console.log('onMouseLeave fired for:', name); setHoveredPokemonData(null); setHoveredPokemonPosition(null); }}
                 className="p-2 cursor-pointer hover:bg-neutral-700"
               >
                 {formatName(name)}
@@ -320,10 +323,6 @@ export default function DamageCalculator() {
     }
   };
 
-  const handlePokemonLeave = () => {
-    setHoveredPokemonData(null);
-    setHoveredPokemonPosition(null);
-  };
 
   useEffect(() => {
     fetchAllPokemonNames().then(setAllPokemonNames).catch(console.error);
@@ -431,8 +430,8 @@ export default function DamageCalculator() {
       <div className="glass rounded-2xl p-6 space-y-4">
         <p className="text-neutral-300">Calcula el daño entre Pokémon.</p>
         <div className="grid md:grid-cols-2 gap-4">
-          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} onPokemonLeave={handlePokemonLeave} />
-          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} onPokemonLeave={handlePokemonLeave} />
+          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} setHoveredPokemonData={setHoveredPokemonData} setHoveredPokemonPosition={setHoveredPokemonPosition} />
+          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} setHoveredPokemonData={setHoveredPokemonData} setHoveredPokemonPosition={setHoveredPokemonPosition} />
         </div>
 
         <div className="flex flex-col gap-2 relative">
