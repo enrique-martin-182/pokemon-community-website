@@ -3,7 +3,7 @@ import { calculate, Generations, Pokemon, Move, Field } from '@smogon/calc';
 import { TypeName } from '@smogon/calc/dist/data/interface';
 import { Weather, Terrain } from '@smogon/calc/dist/data/interface';
 import Tooltip from './Tooltip';
-import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations, STAT_LABELS, StatKey, ItemInfo } from '../services/pokeapi';
+import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations, STAT_LABELS, StatKey, ItemInfo, fetchMoveDetails, MoveInfo } from '../services/pokeapi';
 import { ITEMS } from '../data/items';
 
 const gen = Generations.get(8);
@@ -328,6 +328,8 @@ export default function DamageCalculator() {
   const [moveType, setMoveType] = useState('Fire');
   const [moveCategory, setMoveCategory] = useState('Physical');
   const [movePower, setMovePower] = useState(120);
+  const [moveAccuracy, setMoveAccuracy] = useState<number | null>(100);
+  const [moveDescription, setMoveDescription] = useState<string>('');
   const [weather, setWeather] = useState<string>('None');
   const [terrain, setTerrain] = useState<string>('None');
   const [isReflect, setIsReflect] = useState(false);
@@ -404,11 +406,25 @@ export default function DamageCalculator() {
     setIsMoveDropdownOpen(true);
   };
 
-  const handleSelectMove = (move: string) => {
+  const handleSelectMove = async (move: string) => {
     const displayName = `${moveTranslations.get(move) || move} (${formatName(move)})`;
     setSearchQueryMove(displayName);
     setMoveName(move);
     setIsMoveDropdownOpen(false);
+
+    try {
+      const details = await fetchMoveDetails(move);
+      console.log("Fetched move details:", details);
+      setMoveType(details.type);
+      setMoveCategory(details.category);
+      setMovePower(details.power || 0);
+      setMoveAccuracy(details.accuracy);
+      setMoveDescription(details.description);
+      console.log("Move states updated:", { type: details.type, category: details.category, power: details.power, accuracy: details.accuracy });
+    } catch (error) {
+      console.error("Failed to fetch move details:", error);
+      // Optionally reset move details or show an error to the user
+    }
   };
 
   const parseEVs = (evsString: string) => {
@@ -519,51 +535,16 @@ export default function DamageCalculator() {
 
         <div className="flex flex-col gap-2">
           <label className="text-neutral-400">Tipo de Movimiento:</label>
-          <select
-            value={moveType}
-            onChange={e => setMoveType(e.target.value)}
-            className="p-2 rounded-md bg-neutral-800 text-white"
-          >
-            {[
-              'Normal',
-              'Fire',
-              'Water',
-              'Grass',
-              'Electric',
-              'Ice',
-              'Fighting',
-              'Poison',
-              'Ground',
-              'Flying',
-              'Psychic',
-              'Bug',
-              'Rock',
-              'Ghost',
-              'Dragon',
-              'Steel',
-              'Dark',
-              'Fairy',
-            ].map(type => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          <div className="p-2 rounded-md bg-neutral-800 text-white">
+            {moveType}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-neutral-400">Categoría de Movimiento:</label>
-          <select
-            value={moveCategory}
-            onChange={e => setMoveCategory(e.target.value)}
-            className="p-2 rounded-md bg-neutral-800 text-white"
-          >
-            {['Physical', 'Special', 'Status'].map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+          <div className="p-2 rounded-md bg-neutral-800 text-white">
+            {moveCategory}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -571,9 +552,26 @@ export default function DamageCalculator() {
           <input
             type="number"
             value={movePower}
-            onChange={e => setMovePower(parseInt(e.target.value) || 0)}
+            readOnly
             className="p-2 rounded-md bg-neutral-800 text-white"
           />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-neutral-400">Precisión del Movimiento:</label>
+          <input
+            type="number"
+            value={moveAccuracy || '--'}
+            readOnly
+            className="p-2 rounded-md bg-neutral-800 text-white"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label className="text-neutral-400">Descripción del Movimiento:</label>
+          <div className="p-2 rounded-md bg-neutral-800 text-white h-24 overflow-y-auto">
+            {moveDescription}
+          </div>
         </div>
 
         <div className="space-y-2">

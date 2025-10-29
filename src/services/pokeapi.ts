@@ -34,12 +34,84 @@ interface NameTranslation {
 }
 
 export interface ItemInfo {
+
   name: string;
+
   description: string;
+
 }
 
+
+
+export interface MoveInfo {
+
+  name: string;
+
+  type: string;
+
+  category: string; // 'Physical', 'Special', 'Status'
+
+  power: number | null;
+
+  accuracy: number | null;
+
+  description: string;
+
+}
+
+
+
 const MAX_ID = 1025;
+
 const API = 'https://pokeapi.co/api/v2/pokemon/';
+
+
+
+export async function fetchMoveDetails(moveName: string): Promise<MoveInfo> {
+
+  const formattedMoveName = moveName.toLowerCase().replace(/ /g, '-');
+
+  const res = await fetch(`https://pokeapi.co/api/v2/move/${formattedMoveName}`);
+
+  if (!res.ok) {
+
+    throw new Error(`PokeAPI fetch move details failed for ${moveName} -> ${res.status}`);
+
+  }
+
+  const data = await res.json();
+
+
+
+  const categoryMap: { [key: string]: string } = {
+
+    'physical': 'Physical',
+
+    'special': 'Special',
+
+    'status': 'Status',
+
+  };
+
+
+
+  return {
+
+    name: data.name,
+
+    type: data.type.name.charAt(0).toUpperCase() + data.type.name.slice(1), // Capitalize first letter
+
+    category: categoryMap[data.damage_class.name] || 'Status', // Default to Status if unknown
+
+    power: data.power,
+
+    accuracy: data.accuracy,
+
+    description: data.flavor_text_entries.find((entry: any) => entry.language.name === 'es')?.flavor_text || 'No description available.',
+
+  };
+
+}
 
 
 
@@ -143,19 +215,23 @@ export async function fetchAllMovesWithTranslations(): Promise<Map<string, strin
   const moves = data.results;
 
   const translations = new Map<string, string>();
+  const BATCH_SIZE = 20; // Process 20 requests at a time
 
-  await Promise.all(
-    moves.map(async (move: { name: string; url: string }) => {
-      const moveRes = await fetch(move.url);
-      if (moveRes.ok) {
-        const moveData = await moveRes.json();
-        const spanishName = moveData.names.find((n: any) => n.language.name === 'es');
-        if (spanishName) {
-          translations.set(move.name, spanishName.name);
+  for (let i = 0; i < moves.length; i += BATCH_SIZE) {
+    const batch = moves.slice(i, i + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (move: { name: string; url: string }) => {
+        const moveRes = await fetch(move.url);
+        if (moveRes.ok) {
+          const moveData = await moveRes.json();
+          const spanishName = moveData.names.find((n: any) => n.language.name === 'es');
+          if (spanishName) {
+            translations.set(move.name, spanishName.name);
+          }
         }
-      }
-    })
-  );
+      })
+    );
+  }
 
   moveTranslations = translations;
   return translations;
