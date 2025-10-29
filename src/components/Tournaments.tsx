@@ -2,6 +2,9 @@ import { activeTournaments } from '../data/tournaments'
 import TournamentCard from './TournamentCard'
 
 export default function Tournaments() {
+  console.log('Active Tournaments:', activeTournaments);
+  console.log('Active Tournaments Length:', activeTournaments.length);
+
   return (
     <section className="space-y-6">
       <h2 className="text-3xl md:text-4xl font-bold">🏆 Torneos activos</h2>
