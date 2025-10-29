@@ -20,6 +20,10 @@ export default function Tooltip({ children, content, side = 'right', isVisible, 
       let newStyle: React.CSSProperties = {
         position: 'fixed',
         zIndex: 50,
+        left: undefined,
+        top: undefined,
+        transform: undefined,
+        right: undefined,
       };
 
       if (x !== undefined && y !== undefined) {

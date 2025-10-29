@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { calculate, Generations, Pokemon, Move, Field, TypeName } from '@smogon/calc';
+import { calculate, Generations, Pokemon, Move, Field } from '@smogon/calc';
+import { TypeName } from '@smogon/calc/dist/data/interface';
 import { Weather, Terrain } from '@smogon/calc/dist/data/interface';
 import Tooltip from './Tooltip';
 import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations, STAT_LABELS, StatKey } from '../services/pokeapi';
+import { ITEMS } from '../data/items';
 
 const gen = Generations.get(8);
 
@@ -218,60 +220,9 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
           onChange={e => handleChange('item', e.target.value)}
           className="p-2 rounded-md bg-neutral-800 text-white"
         >
-          {[
-            'None',
-            'Choice Band',
-            'Choice Specs',
-            'Choice Scarf',
-            'Life Orb',
-            'Expert Belt',
-            'Muscle Band',
-            'Wise Glasses',
-            'Metronome',
-            'Adamant Orb',
-            'Griseous Orb',
-            'Lustrous Orb',
-            'Big Root',
-            'Binding Band',
-            'Scope Lens',
-            'Razor Claw',
-            'Absorb Bulb',
-            'Cell Battery',
-            'Weakness Policy',
-            'Assault Vest',
-            'Eviolite',
-            'Focus Sash',
-            'Rocky Helmet',
-            'Air Balloon',
-            'Black Sludge',
-            'Bright Powder',
-            'Lax Incense',
-            'Electric Seed',
-            'Grassy Seed',
-            'Misty Seed',
-            'Psychic Seed',
-            'Light Clay',
-            'Focus Band',
-            'Pixie Plate',
-            'Mind Plate',
-            'Draco Plate',
-            'Dread Plate',
-            'Earth Plate',
-            'Fist Plate',
-            'Flame Plate',
-            'Icicle Plate',
-            'Insect Plate',
-            'Iron Plate',
-            'Meadow Plate',
-            'Sky Plate',
-            'Splash Plate',
-            'Spooky Plate',
-            'Stone Plate',
-            'Toxic Plate',
-            'Zap Plate',
-          ].map(item => (
-            <option key={item} value={item}>
-              {item}
+          {ITEMS.map(item => (
+            <option key={item.value} value={item.value}>
+              {item.name}
             </option>
           ))}
         </select>

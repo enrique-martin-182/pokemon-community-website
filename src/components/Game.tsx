@@ -1,4 +1,4 @@
-import { STAT_LABELS, StatKey, Pokemon } from '../services/pokeapi'
+import { STAT_LABELS, StatKey, PokemonInfo } from '../services/pokeapi';
 import { useGameLogic } from '../hooks/useGameLogic'
 
 export default function Game() {
@@ -123,7 +123,7 @@ function PokemonCard({
   revealValues,
 }: {
   side: 'left' | 'right'
-  pokemon: Pokemon | null
+  pokemon: PokemonInfo | null
   statKey: StatKey
   onChoose: () => void
   disabled?: boolean

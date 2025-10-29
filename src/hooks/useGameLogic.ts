@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { REVEAL_MS_CORRECT, REVEAL_MS_WRONG } from '../gameConfig'
-import { fetchPokemon, randomId, Pokemon, StatKey } from '../services/pokeapi'
+import { fetchPokemon, randomId, PokemonInfo, StatKey } from '../services/pokeapi';
 
 function useBestScore() {
   const getAll = () => {
@@ -22,9 +22,9 @@ function useBestScore() {
 
 export function useGameLogic() {
   const [stat, setStat] = useState<StatKey | null>(null)
-  const [left, setLeft] = useState<Pokemon | null>(null)
-  const [right, setRight] = useState<Pokemon | null>(null)
-  const [loading, setLoading] = useState(false)
+     const [left, setLeft] = useState<PokemonInfo | null>(null)
+     const [right, setRight] = useState<PokemonInfo | null>(null)
+   const [loading, setLoading] = useState(false)
   const [score, setScore] = useState(0)
   const [mode, setMode] = useState<'select' | 'playing' | 'gameover'>('select')
   const [msg, setMsg] = useState<string>('')
@@ -36,8 +36,7 @@ export function useGameLogic() {
 
   const { getFor, setFor } = useBestScore()
 
-  async function getRandomPokemon(excludeId?: number): Promise<Pokemon> {
-    let tries = 0
+     async function getRandomPokemon(excludeId?: number): Promise<PokemonInfo> {    let tries = 0
     while (tries < 6) {
       try {
         const id = randomId(excludeId)
@@ -80,8 +79,7 @@ export function useGameLogic() {
     setLoading(false)
   }
 
-  function value(p: Pokemon | null, s: StatKey | null) {
-    if (!p || !s) return 0
+     function value(p: PokemonInfo | null, s: StatKey | null) {    if (!p || !s) return 0
     return p.stats[s]
   }
 
