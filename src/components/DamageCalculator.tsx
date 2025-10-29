@@ -387,6 +387,7 @@ export default function DamageCalculator() {
     fetchAllMovesWithTranslations().then(translations => {
       setMoveTranslations(translations);
       setAllMoves(Array.from(translations.keys()).sort());
+      console.log('All moves fetched and translated:', translations.keys());
     }).catch(console.error);
   }, []);
 
