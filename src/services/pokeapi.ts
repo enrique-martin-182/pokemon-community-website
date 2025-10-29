@@ -25,8 +25,23 @@ interface PokemonStat {
   }
 }
 
-const MAX_ID = 1025
-const API = 'https://pokeapi.co/api/v2/pokemon/'
+interface NameTranslation {
+  name: string;
+  language: {
+    name: string;
+    url: string;
+  };
+}
+
+export interface ItemInfo {
+  name: string;
+  description: string;
+}
+
+const MAX_ID = 1025;
+const API = 'https://pokeapi.co/api/v2/pokemon/';
+
+
 
 // --- Caché en memoria + localStorage
 const memCache = new Map<number, PokemonInfo>()

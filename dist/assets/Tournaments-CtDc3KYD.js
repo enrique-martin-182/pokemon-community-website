@@ -1,4 +1,4 @@
-import{r as l,j as e}from"./index-CNELjhoE.js";const r=[{id:"qlk-comm-001",name:"LIGA POKÉMON QLK: TORNEO DE EXHIBICIÓN DE LÍDERES DE GIMNASIO",dateISO:new Date().toISOString(),format:"VGC",location:"Online",registrationLink:"#",notes:`El objetivo del torneo será por una parte que los futuros líderes tengan la oportunidad de demostrar su habilidad y equipos por un lado y elegir al alto mando por el otro.
+import{r as l,j as e}from"./index-DFosdfMf.js";const r=[{id:"qlk-comm-001",name:"LIGA POKÉMON QLK: TORNEO DE EXHIBICIÓN DE LÍDERES DE GIMNASIO",dateISO:new Date().toISOString(),format:"VGC",location:"Online",registrationLink:"#",notes:`El objetivo del torneo será por una parte que los futuros líderes tengan la oportunidad de demostrar su habilidad y equipos por un lado y elegir al alto mando por el otro.
 
 La competición consta de dos fases: 
 

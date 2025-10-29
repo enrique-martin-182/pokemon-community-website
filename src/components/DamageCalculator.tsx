@@ -3,7 +3,7 @@ import { calculate, Generations, Pokemon, Move, Field } from '@smogon/calc';
 import { TypeName } from '@smogon/calc/dist/data/interface';
 import { Weather, Terrain } from '@smogon/calc/dist/data/interface';
 import Tooltip from './Tooltip';
-import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations, STAT_LABELS, StatKey } from '../services/pokeapi';
+import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations, STAT_LABELS, StatKey, ItemInfo } from '../services/pokeapi';
 import { ITEMS } from '../data/items';
 
 const gen = Generations.get(8);
@@ -28,6 +28,8 @@ interface PokemonInputFormProps {
   onPokemonHover: (name: string, event: React.MouseEvent<HTMLLIElement>) => void;
   setHoveredPokemonData: React.Dispatch<React.SetStateAction<PokemonInfo | null>>;
   setHoveredPokemonPosition: React.Dispatch<React.SetStateAction<{ x: number; y: number; } | null>>;
+  onItemHover: (itemName: string, event: React.MouseEvent<HTMLLIElement>) => void;
+  onItemLeave: () => void;
 }
 
 function formatName(name: string): string {
@@ -44,11 +46,13 @@ function formatAbilityName(name: string): string {
     .join(' ');
 }
 
-function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTranslations, onPokemonHover, setHoveredPokemonData, setHoveredPokemonPosition }: PokemonInputFormProps) {
+function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTranslations, onPokemonHover, setHoveredPokemonData, setHoveredPokemonPosition, onItemHover, onItemLeave }: PokemonInputFormProps) {
   const [abilities, setAbilities] = useState<string[]>([]);
   const [searchQueryPokemon, setSearchQueryPokemon] = useState('');
   const [filteredPokemon, setFilteredPokemon] = useState<string[]>(allPokemonNames);
   const [isPokemonDropdownOpen, setIsPokemonDropdownOpen] = useState(false);
+  const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
+  const [searchQueryItem, setSearchQueryItem] = useState('');
 
   useEffect(() => {
     setFilteredPokemon(allPokemonNames);
@@ -102,6 +106,20 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
     setHoveredPokemonPosition(null);
   };
 
+  const handleItemSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQueryItem(query);
+    handleChange('item', query);
+    setIsItemDropdownOpen(true);
+  };
+
+  const handleSelectItem = (value: string) => {
+    setSearchQueryItem(value);
+    handleChange('item', value);
+    setIsItemDropdownOpen(false);
+    onItemLeave(); // Hide tooltip immediately on selection
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-xl font-semibold">{title}</h3>
@@ -112,6 +130,7 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
           value={searchQueryPokemon || pokemon.name}
           onChange={handlePokemonSearchChange}
           onFocus={() => {
+            setSearchQueryPokemon('');
             setFilteredPokemon(allPokemonNames);
             setIsPokemonDropdownOpen(true);
           }}
@@ -125,7 +144,7 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
                 key={name}
                 onMouseDown={() => handleSelectPokemon(name)}
                 onMouseEnter={(e) => onPokemonHover(name, e)}
-                onMouseLeave={() => { console.log('onMouseLeave fired for:', name); setHoveredPokemonData(null); setHoveredPokemonPosition(null); }}
+                onMouseLeave={() => { setHoveredPokemonData(null); setHoveredPokemonPosition(null); }}
                 className="p-2 cursor-pointer hover:bg-neutral-700"
               >
                 {formatName(name)}
@@ -218,17 +237,34 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Objeto:</label>
-        <select
-          value={pokemon.item}
-          onChange={e => handleChange('item', e.target.value)}
-          className="p-2 rounded-md bg-neutral-800 text-white"
-        >
-          {ITEMS.map(item => (
-            <option key={item.value} value={item.value}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQueryItem || pokemon.item}
+            onChange={handleItemSearchChange}
+            onFocus={() => { setSearchQueryItem(''); setIsItemDropdownOpen(true); }}
+            onBlur={() => setTimeout(() => setIsItemDropdownOpen(false), 200)}
+            className="p-2 rounded-md bg-neutral-800 text-white w-full"
+          />
+          {isItemDropdownOpen && (
+            <ul className="bg-neutral-800 rounded-md mt-1 max-h-48 overflow-y-auto absolute z-10 w-full top-full">
+              {ITEMS.filter(item =>
+                item.name.toLowerCase().includes(searchQueryItem.toLowerCase()) ||
+                item.value.toLowerCase().includes(searchQueryItem.toLowerCase())
+              ).map(item => (
+                <li
+                  key={item.value}
+                  onMouseDown={() => handleSelectItem(item.value)}
+                  onMouseEnter={(e) => onItemHover(item.value, e)}
+                  onMouseLeave={onItemLeave}
+                  className="p-2 cursor-pointer hover:bg-neutral-700"
+                >
+                  {item.name} ({item.value})
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Tera Tipo:</label>
@@ -306,6 +342,8 @@ export default function DamageCalculator() {
   const [isMoveDropdownOpen, setIsMoveDropdownOpen] = useState(false);
   const [hoveredPokemonData, setHoveredPokemonData] = useState<PokemonInfo | null>(null);
   const [hoveredPokemonPosition, setHoveredPokemonPosition] = useState<{ x: number, y: number } | null>(null);
+  const [hoveredItemData, setHoveredItemData] = useState<ItemInfo | null>(null);
+  const [hoveredItemPosition, setHoveredItemPosition] = useState<{ x: number, y: number } | null>(null);
 
   useEffect(() => {
     setFilteredMoves(allMoves);
@@ -323,6 +361,23 @@ export default function DamageCalculator() {
     }
   };
 
+  const handleItemHover = (itemName: string, event: React.MouseEvent<HTMLLIElement>) => {
+    const item = ITEMS.find(i => i.value === itemName);
+    if (item && item.description) {
+      setHoveredItemData({ name: item.name, description: item.description });
+      setHoveredItemPosition({ x: event.clientX, y: event.clientY });
+    }
+  };
+
+  const handleItemLeave = () => {
+    setHoveredItemData(null);
+    setHoveredItemPosition(null);
+  };
+
+  const handlePokemonLeave = () => {
+    setHoveredPokemonData(null);
+    setHoveredPokemonPosition(null);
+  };
 
   useEffect(() => {
     fetchAllPokemonNames().then(setAllPokemonNames).catch(console.error);
@@ -430,8 +485,8 @@ export default function DamageCalculator() {
       <div className="glass rounded-2xl p-6 space-y-4">
         <p className="text-neutral-300">Calcula el daño entre Pokémon.</p>
         <div className="grid md:grid-cols-2 gap-4">
-          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} setHoveredPokemonData={setHoveredPokemonData} setHoveredPokemonPosition={setHoveredPokemonPosition} />
-          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} setHoveredPokemonData={setHoveredPokemonData} setHoveredPokemonPosition={setHoveredPokemonPosition} />
+          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} setHoveredPokemonData={setHoveredPokemonData} setHoveredPokemonPosition={setHoveredPokemonPosition} onItemHover={handleItemHover} onItemLeave={handleItemLeave} />
+          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} setHoveredPokemonData={setHoveredPokemonData} setHoveredPokemonPosition={setHoveredPokemonPosition} onItemHover={handleItemHover} onItemLeave={handleItemLeave} />
         </div>
 
         <div className="flex flex-col gap-2 relative">
@@ -598,6 +653,20 @@ export default function DamageCalculator() {
             x={hoveredPokemonPosition.x}
             y={hoveredPokemonPosition.y}
         />
+      )}
+
+      {hoveredItemData && hoveredItemPosition && (
+          <Tooltip
+              content={
+                  <div className="flex flex-col items-center p-2">
+                      <h4 className="text-md font-bold capitalize text-white mb-1">{hoveredItemData.name}</h4>
+                      <p className="text-sm text-neutral-300 text-center">{hoveredItemData.description}</p>
+                  </div>
+              }
+              isVisible={true}
+              x={hoveredItemPosition.x}
+              y={hoveredItemPosition.y}
+          />
       )}
     </section>
   );
