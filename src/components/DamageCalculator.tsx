@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { calculate, Generations, Pokemon, Move, Field, TypeName } from '@smogon/calc';
 import { Weather, Terrain } from '@smogon/calc/dist/data/interface';
 import Tooltip from './Tooltip';
-import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations } from '../services/pokeapi';
+import { PokemonInfo, fetchPokemonByName, fetchAllPokemonNames, fetchAllAbilitiesWithTranslations, fetchAllMovesWithTranslations, STAT_LABELS, StatKey } from '../services/pokeapi';
 
 const gen = Generations.get(8);
 
@@ -23,6 +23,8 @@ interface PokemonInputFormProps {
   onChange: (details: PokemonDetails) => void;
   allPokemonNames: string[];
   abilityTranslations: Map<string, string>;
+  onPokemonHover: (name: string, event: React.MouseEvent<HTMLLIElement>) => void;
+  onPokemonLeave: () => void;
 }
 
 function formatName(name: string): string {
@@ -32,12 +34,18 @@ function formatName(name: string): string {
     .join(' ');
 }
 
-function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTranslations }: PokemonInputFormProps) {
+function formatAbilityName(name: string): string {
+  return name
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTranslations, onPokemonHover, onPokemonLeave }: PokemonInputFormProps) {
   const [abilities, setAbilities] = useState<string[]>([]);
   const [searchQueryPokemon, setSearchQueryPokemon] = useState('');
   const [filteredPokemon, setFilteredPokemon] = useState<string[]>(allPokemonNames);
   const [isPokemonDropdownOpen, setIsPokemonDropdownOpen] = useState(false);
-  const [hoveredPokemon, setHoveredPokemon] = useState<PokemonInfo | null>(null);
 
   useEffect(() => {
     setFilteredPokemon(allPokemonNames);
@@ -89,8 +97,38 @@ function PokemonInputForm({ title, pokemon, onChange, allPokemonNames, abilityTr
     setIsPokemonDropdownOpen(false);
   };
 
-
-
+  return (
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold">{title}</h3>
+      <div className="relative">
+        <label className="text-neutral-400">Pokémon:</label>
+        <input
+          type="text"
+          value={searchQueryPokemon || pokemon.name}
+          onChange={handlePokemonSearchChange}
+          onFocus={() => {
+            setFilteredPokemon(allPokemonNames);
+            setIsPokemonDropdownOpen(true);
+          }}
+          onBlur={() => setTimeout(() => setIsPokemonDropdownOpen(false), 200)}
+          className="p-2 rounded-md bg-neutral-800 text-white w-full"
+        />
+        {isPokemonDropdownOpen && filteredPokemon.length > 0 && (
+          <ul className="bg-neutral-800 rounded-md mt-1 max-h-48 overflow-y-auto absolute z-10 w-full top-full">
+            {filteredPokemon.map(name => (
+              <li
+                key={name}
+                onMouseDown={() => handleSelectPokemon(name)}
+                onMouseEnter={(e) => onPokemonHover(name, e)}
+                onMouseLeave={onPokemonLeave}
+                className="p-2 cursor-pointer hover:bg-neutral-700"
+              >
+                {formatName(name)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <div className="flex flex-col gap-1">
         <label className="text-neutral-400">Nivel:</label>
         <input
@@ -312,10 +350,29 @@ export default function DamageCalculator() {
   const [searchQueryMove, setSearchQueryMove] = useState('');
   const [filteredMoves, setFilteredMoves] = useState<string[]>(allMoves);
   const [isMoveDropdownOpen, setIsMoveDropdownOpen] = useState(false);
+  const [hoveredPokemonData, setHoveredPokemonData] = useState<PokemonInfo | null>(null);
+  const [hoveredPokemonPosition, setHoveredPokemonPosition] = useState<{ x: number, y: number } | null>(null);
 
   useEffect(() => {
     setFilteredMoves(allMoves);
   }, [allMoves]);
+
+  const handlePokemonHover = async (name: string, event: React.MouseEvent<HTMLLIElement>) => {
+    try {
+      const data = await fetchPokemonByName(name);
+      setHoveredPokemonData(data);
+      setHoveredPokemonPosition({ x: event.clientX, y: event.clientY });
+    } catch (error) {
+      console.error("Failed to fetch Pokémon data on hover:", error);
+      setHoveredPokemonData(null);
+      setHoveredPokemonPosition(null);
+    }
+  };
+
+  const handlePokemonLeave = () => {
+    setHoveredPokemonData(null);
+    setHoveredPokemonPosition(null);
+  };
 
   useEffect(() => {
     fetchAllPokemonNames().then(setAllPokemonNames).catch(console.error);
@@ -423,8 +480,8 @@ export default function DamageCalculator() {
       <div className="glass rounded-2xl p-6 space-y-4">
         <p className="text-neutral-300">Calcula el daño entre Pokémon.</p>
         <div className="grid md:grid-cols-2 gap-4">
-          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} />
-          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} />
+          <PokemonInputForm title="Atacante" pokemon={attacker} onChange={setAttacker} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} onPokemonLeave={handlePokemonLeave} />
+          <PokemonInputForm title="Defensor" pokemon={defender} onChange={setDefender} allPokemonNames={allPokemonNames} abilityTranslations={abilityTranslations} onPokemonHover={handlePokemonHover} onPokemonLeave={handlePokemonLeave} />
         </div>
 
         <div className="flex flex-col gap-2 relative">
@@ -572,6 +629,26 @@ export default function DamageCalculator() {
         </button>
         {result && <p className="text-neutral-200 mt-4">{result}</p>}
       </div>
+      {hoveredPokemonData && hoveredPokemonPosition && (
+        <Tooltip
+            content={
+                <div className="flex flex-col items-center p-2">
+                    <img src={hoveredPokemonData.sprite} alt={hoveredPokemonData.name} className="w-24 h-24 mb-2 bg-gray-700 rounded-full" />
+                    <h4 className="text-md font-bold capitalize text-white mb-1">{hoveredPokemonData.name}</h4>
+                    <div className="grid grid-cols-2 gap-x-4 text-neutral-300">
+                        {Object.entries(hoveredPokemonData.stats).map(([statName, statValue]) => (
+                            <p key={statName} className="text-sm">
+                                {STAT_LABELS[statName as StatKey]}: {statValue}
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            }
+            isVisible={true}
+            x={hoveredPokemonPosition.x}
+            y={hoveredPokemonPosition.y}
+        />
+      )}
     </section>
   );
 }
